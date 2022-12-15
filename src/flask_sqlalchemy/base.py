@@ -39,13 +39,9 @@ class NameMixin:
     """
 
     # TODO: Is this the correct method signature?
-    # @sa.orm.declared_attr
-    @classmethod
+    @sa.orm.declared_attr
     def __tablename__(cls) -> str | None:  # noqa: B902
         """Override SQLAlchemy built-in method."""
-        # import ipdb
-        #
-        # ipdb.set_trace()
         # determine whether a primar key has been declared
         if hasattr(cls, "id") and getattr(cls.id, "primary_key", False):
             return camel_to_snake_case(cls.__name__)
