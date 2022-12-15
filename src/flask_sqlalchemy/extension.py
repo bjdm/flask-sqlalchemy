@@ -14,6 +14,7 @@ from flask import current_app
 from flask import Flask
 from flask import has_app_context
 
+from .base import NameMixin
 from .model import _QueryProperty
 from .model import DefaultMeta
 from .model import Model
@@ -123,9 +124,11 @@ class SQLAlchemy:
         session_options: dict[str, t.Any] | None = None,
         query_class: t.Type[Query] = Query,
         model_class: t.Type[Model] | sa.orm.DeclarativeMeta = Model,
+        # base_class: t.Type[Model] = Base,
         engine_options: dict[str, t.Any] | None = None,
         add_models_to_shell: bool = True,
     ):
+
         if session_options is None:
             session_options = {}
 
@@ -164,6 +167,16 @@ class SQLAlchemy:
 
         .. versionadded:: 3.0
         """
+        # bjdm: my additions
+        # create a registry to store all of the metadata to begin with. use this
+        # registry object to create all other bases and mappers/metadata
+        self.registry = sa.orm.registry()
+
+        class Base(NameMixin, sa.orm.DeclarativeBase):
+            registry = self.registry
+
+        self.Base = Base
+        self.Model_ = self.registry.generate_base()
 
         if metadata is not None:
             metadata.info["bind_key"] = None
@@ -420,6 +433,7 @@ class SQLAlchemy:
             ) -> Table:
                 # If a metadata arg is passed, go directly to the base Table. Also do
                 # this for no args so the correct error is shown.
+
                 if not args or (len(args) >= 2 and isinstance(args[1], sa.MetaData)):
                     return super().__new__(cls, *args, **kwargs)
 
@@ -429,6 +443,47 @@ class SQLAlchemy:
         return Table
 
     def _make_declarative_base(
+        self, model: t.Type[Model] | sa.orm.DeclarativeMeta
+    ) -> t.Type[t.Any]:
+        """Create a SQLAlchemy declarative model class. The result is available as
+        :attr:`Model`.
+
+        To customize, subclass :class:`.Model` and pass it as ``model_class`` to
+        :class:`SQLAlchemy`. To customize at the metaclass level, pass an already
+        created declarative model class as ``model_class``.
+
+        This method is used for internal setup. Its signature may change at any time.
+
+        :meta private:
+
+        :param model: A model base class, or an already created declarative model class.
+
+        .. versionchanged:: 3.0
+            Renamed with a leading underscore, this method is internal.
+
+        .. versionchanged:: 2.3
+            ``model`` can be an already created declarative model class.
+        """
+        if not isinstance(model, sa.orm.DeclarativeMeta):
+            metadata = self._make_metadata(None)
+            model = sa.orm.declarative_base(
+                metadata=metadata, cls=model, name="Model", metaclass=DefaultMeta
+            )
+
+        if None not in self.metadatas:
+            # Use the model's metadata as the default metadata.
+            model.metadata.info["bind_key"] = None  # type: ignore[union-attr]
+            self.metadatas[None] = model.metadata  # type: ignore[union-attr]
+        else:
+            # Use the passed in default metadata as the model's metadata.
+            model.metadata = self.metadatas[None]  # type: ignore[union-attr]
+
+        model.query_class = self.Query
+        model.query = _QueryProperty()
+        model.__fsa__ = self
+        return model
+
+    def _make_declarative_base_(
         self, model: t.Type[Model] | sa.orm.DeclarativeMeta
     ) -> t.Type[t.Any]:
         """Create a SQLAlchemy declarative model class. The result is available as
