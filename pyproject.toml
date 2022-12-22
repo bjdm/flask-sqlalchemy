@@ -16,7 +16,11 @@ classifiers = [
 ]
 dynamic = ["version"]
 requires-python = ">=3.7"
-dependencies = ["Flask>=2.2", "SQLAlchemy>=1.4.18"]
+dependencies = [
+    "Flask>=2.2.2",
+    "sqlalchemy>=1.4.45",
+    "pip>=22.3.1",
+]
 
 [project.urls]
 Donate = "https://palletsprojects.com/donate"
@@ -37,30 +41,30 @@ version = { source = "file", path = "src/flask_sqlalchemy/__init__.py" }
 
 [tool.pdm.dev-dependencies]
 tests = [
-    "pytest",
-    "blinker",
+    "pytest>=7.2.0",
+    "blinker>=1.5",
 ]
 coverage = [
-    "pytest-cov",
-    "coverage[toml]",
+    "pytest-cov>=4.0.0",
+    "coverage[toml]>=6.5.0",
 ]
 mypy = [
-    "mypy",
-    "pytest",
-    "sqlalchemy[mypy]",
+    "mypy>=0.991",
+    "pytest>=7.2.0",
+    "sqlalchemy[mypy]>=1.4.45",
 ]
 docs = [
-    "sphinx",
-    "pallets-sphinx-themes",
-    "sphinx-issues",
-    "sphinxcontrib-log-cabinet",
+    "sphinx>=5.3.0",
+    "pallets-sphinx-themes>=2.0.2",
+    "sphinx-issues>=3.0.1",
+    "sphinxcontrib-log-cabinet>=1.0.1",
 ]
 pre-commit = [
-    "pre-commit",
+    "pre-commit>=2.20.0",
 ]
 tox = [
-    "tox",
-    "tox-pdm",
+    "tox>=4.0.9",
+    "tox-pdm>=0.6.1",
 ]
 
 [tool.pdm.build]

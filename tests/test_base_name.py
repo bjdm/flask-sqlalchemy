@@ -176,6 +176,7 @@ def test_manual_name(db: SQLAlchemy) -> None:
         __mapper_args__ = {"polymorphic_on": type}
 
     class Daffy(Duck):
+        breakpoint()
         id = sa.Column(sa.Integer, sa.ForeignKey(Duck.id), primary_key=True)
 
         __mapper_args__ = {"polymorphic_identity": "Tower"}  # type: ignore[dict-item]
